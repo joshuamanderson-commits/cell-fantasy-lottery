@@ -8,7 +8,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         body {
             background: #0f1012;
@@ -16,7 +16,7 @@
         }
 
         .glass {
-            background: rgba(29, 32, 33, 0.8);
+            background: rgba(29, 32, 33, 0.82);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -37,6 +37,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            background: #111827;
         }
 
         .pie-svg {
@@ -45,8 +46,13 @@
         }
 
         @keyframes spinWheel {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .pie-svg.spinning {
@@ -67,19 +73,18 @@
             filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
         }
 
-        .wheel-segment {
+        .center-dot {
             position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: 100% 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: #fff;
-            clip-path: polygon(0 0, 100% 0, 100% 100%);
-            border-right: 1px solid rgba(0, 0, 0, 0.2);
+            left: 50%;
+            top: 50%;
+            width: 58px;
+            height: 58px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, #38bdf8 0%, #0d8cff 55%, #082f49 100%);
+            border: 4px solid #0f1012;
+            border-radius: 999px;
+            z-index: 9;
+            box-shadow: 0 0 24px rgba(13, 140, 255, 0.55);
         }
 
         .modal-overlay {
@@ -88,18 +93,24 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.72);
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 50;
             animation: fadeIn 0.3s ease;
+            padding: 16px;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .modal-content {
@@ -109,22 +120,30 @@
             border-radius: 24px;
             animation: modalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             box-shadow: 0 20px 60px rgba(13, 140, 255, 0.2);
+            width: min(100%, 560px);
         }
 
         @keyframes modalPop {
-            0% { transform: scale(0.3) rotateZ(-10deg); opacity: 0; }
-            100% { transform: scale(1) rotateZ(0deg); opacity: 1; }
+            0% {
+                transform: scale(0.3) rotateZ(-10deg);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1) rotateZ(0deg);
+                opacity: 1;
+            }
         }
 
         .modal-inner {
             background: #0f1012;
-            padding: 50px 40px;
+            padding: 46px 34px;
             border-radius: 22px;
             text-align: center;
         }
 
         .pick-number-large {
-            font-size: 120px;
+            font-size: clamp(72px, 20vw, 120px);
             font-weight: 900;
             background: linear-gradient(135deg, #0d8cff 0%, #38bdf8 100%);
             -webkit-background-clip: text;
@@ -132,13 +151,15 @@
             background-clip: text;
             margin: 0;
             letter-spacing: -4px;
+            line-height: 1;
         }
 
         .team-name-large {
-            font-size: 56px;
+            font-size: clamp(36px, 12vw, 56px);
             font-weight: 900;
             color: #f5f5f5;
-            margin: 20px 0;
+            margin: 18px 0;
+            word-break: break-word;
         }
 
         .modal-button {
@@ -150,7 +171,7 @@
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            margin-top: 30px;
+            margin-top: 28px;
             transition: all 0.3s;
             box-shadow: 0 8px 24px rgba(13, 140, 255, 0.3);
         }
@@ -214,14 +235,46 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .pill-button.active {
-            background: #0d8cff;
-            color: #fff;
-            border-color: #0d8cff;
+        .stat-card {
+            background: rgba(15, 16, 18, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 16px;
         }
 
+        .odds-row {
+            background: rgba(15, 16, 18, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .mini-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .mini-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #0d8cff 0%, #38bdf8 100%);
+        }
+
+        @media (max-width: 480px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+
+            .modal-inner {
+                padding: 40px 24px;
+            }
+        }
     </style>
 </head>
+
 <body style="margin:0; padding:0;">
     <div id="root"></div>
 
@@ -233,12 +286,16 @@
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
+
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
+
                 oscillator.frequency.value = 800;
                 oscillator.type = 'sine';
+
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.3);
             },
@@ -246,14 +303,19 @@
             playWin: () => {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const notes = [523.25, 659.25, 783.99, 1046.50];
+
                 notes.forEach((freq, i) => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
+
                     osc.connect(gain);
                     gain.connect(audioContext.destination);
+
                     osc.frequency.value = freq;
+
                     gain.gain.setValueAtTime(0.2, audioContext.currentTime + i * 0.1);
                     gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4 + i * 0.1);
+
                     osc.start(audioContext.currentTime + i * 0.1);
                     osc.stop(audioContext.currentTime + 0.4 + i * 0.1);
                 });
@@ -268,17 +330,28 @@
         ];
 
         function WheelOfFortune({ teams, currentBallPool, isSpinning, isLanding, wheelRotation }) {
-            const remaining = teams.filter(t => currentBallPool.includes(t.id));
+            const ballSegments = currentBallPool.map((teamId, ballIndex) => {
+                const team = teams.find(t => t.id === teamId);
+
+                return {
+                    teamId,
+                    ballIndex,
+                    team,
+                };
+            }).filter(segment => segment.team);
 
             return (
                 <svg
                     className={`pie-svg ${isSpinning && !isLanding ? 'spinning' : ''}`}
                     viewBox="0 0 200 200"
-                    style={{ transform: `rotate(${wheelRotation}deg)`, transition: isLanding ? 'transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none' }}
+                    style={{
+                        transform: `rotate(${wheelRotation}deg)`,
+                        transition: isLanding ? 'transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
+                    }}
                 >
-                    {remaining.map((team, idx) => {
-                        const angle = (360 / remaining.length) * idx;
-                        const nextAngle = (360 / remaining.length) * (idx + 1);
+                    {ballSegments.map((segment, idx) => {
+                        const angle = (360 / ballSegments.length) * idx;
+                        const nextAngle = (360 / ballSegments.length) * (idx + 1);
                         const startRad = (angle * Math.PI) / 180;
                         const endRad = (nextAngle * Math.PI) / 180;
 
@@ -296,26 +369,29 @@
                             `Z`
                         ].join(' ');
 
+                        const labelAngle = (angle + nextAngle) / 2;
+                        const labelRad = (labelAngle * Math.PI) / 180;
+
                         return (
-                            <g key={team.id}>
+                            <g key={`${segment.teamId}-${segment.ballIndex}-${idx}`}>
                                 <path
                                     d={pathData}
-                                    fill={neonColors[team.id]}
+                                    fill={neonColors[segment.teamId]}
                                     stroke="#000"
-                                    strokeWidth="1"
+                                    strokeWidth="0.55"
                                 />
-                                {360 / remaining.length > 15 && (
+
+                                {360 / ballSegments.length > 8 && (
                                     <text
-                                        x={100 + 60 * Math.cos(((angle + nextAngle) / 2 * Math.PI) / 180)}
-                                        y={100 + 60 * Math.sin(((angle + nextAngle) / 2 * Math.PI) / 180)}
+                                        x={100 + 62 * Math.cos(labelRad)}
+                                        y={100 + 62 * Math.sin(labelRad)}
                                         textAnchor="middle"
                                         dominantBaseline="middle"
                                         fill="#fff"
-                                        fontSize="10"
+                                        fontSize={ballSegments.length > 32 ? "6" : "8"}
                                         fontWeight="bold"
-                                        textShadow="1px 1px 2px rgba(0,0,0,0.8)"
                                     >
-                                        {team.abbr}
+                                        {segment.team.abbr}
                                     </text>
                                 )}
                             </g>
@@ -328,6 +404,7 @@
         function App() {
             const [phase, setPhase] = useState('setup');
             const [entryAmount, setEntryAmount] = useState(150);
+
             const [teams, setTeams] = useState([
                 { id: 0, name: 'Lmartin', abbr: 'LM', position: 1, baseBalls: 6, purchasedBalls: 0, maxPurchase: 2, discountPrice: 7.50, standardPrice: 15, isReplacement: false, replacementBonus: 0, isTBWinner: false },
                 { id: 1, name: 'Mo', abbr: 'MO', position: 2, baseBalls: 5, purchasedBalls: 0, maxPurchase: 2, discountPrice: null, standardPrice: 15, isReplacement: false, replacementBonus: 0, isTBWinner: false },
@@ -346,6 +423,7 @@
                 { id: 14, name: 'Teezy', abbr: 'TEE', position: 15, baseBalls: 1, purchasedBalls: 0, maxPurchase: 2, discountPrice: null, standardPrice: 15, isReplacement: false, replacementBonus: 0, isTBWinner: false },
                 { id: 15, name: 'Dee', abbr: 'DEE', position: 16, baseBalls: 1, purchasedBalls: 0, maxPurchase: 2, discountPrice: null, standardPrice: 15, isReplacement: false, replacementBonus: 0, isTBWinner: false },
             ]);
+
             const [selectedPicks, setSelectedPicks] = useState([]);
             const [currentBallPool, setCurrentBallPool] = useState([]);
             const [isSpinning, setIsSpinning] = useState(false);
@@ -365,21 +443,50 @@
                 return team.baseBalls + team.purchasedBalls + team.replacementBonus;
             };
 
+            const getTeamBallCountInPool = (teamId, pool = currentBallPool) => {
+                return pool.filter(id => id === teamId).length;
+            };
+
+            const getTeamOddsInPool = (teamId, pool = currentBallPool) => {
+                if (pool.length === 0) return '0.0';
+
+                const ballCount = getTeamBallCountInPool(teamId, pool);
+
+                return ((ballCount / pool.length) * 100).toFixed(1);
+            };
+
+            const buildPickRecord = (team, poolBeforePick) => {
+                const pickBallCount = getTeamBallCountInPool(team.id, poolBeforePick);
+                const pickTotalBalls = poolBeforePick.length;
+                const pickPercentage = pickTotalBalls > 0 ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1) : '0.0';
+
+                return {
+                    ...team,
+                    pickBallCount,
+                    pickTotalBalls,
+                    pickPercentage,
+                };
+            };
+
             const getPurchaseCost = (team) => {
                 let cost = 0;
+
                 for (let i = 0; i < team.purchasedBalls; i++) {
                     cost += (team.discountPrice && i < 2) ? team.discountPrice : team.standardPrice;
                 }
+
                 return cost;
             };
 
             const startLottery = () => {
                 const pool = [];
+
                 teams.forEach(team => {
                     for (let i = 0; i < getTotalBalls(team); i++) {
                         pool.push(team.id);
                     }
                 });
+
                 setCurrentBallPool(pool);
                 setSelectedPicks([]);
                 setWheelRotation(0);
@@ -393,29 +500,38 @@
                 setIsSpinning(true);
                 setIsLanding(false);
 
-                const randomIndex = Math.floor(Math.random() * currentBallPool.length);
-                const selectedId = currentBallPool[randomIndex];
+                const poolBeforePick = [...currentBallPool];
+                const randomIndex = Math.floor(Math.random() * poolBeforePick.length);
+                const selectedId = poolBeforePick[randomIndex];
                 const selectedTeam = teams.find(t => t.id === selectedId);
+                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
 
-                const remaining = teams.filter(t => currentBallPool.includes(t.id));
-                const segmentAngle = 360 / remaining.length;
-                const selectedTeamIndex = remaining.findIndex(t => t.id === selectedId);
-                const teamCenterAngle = selectedTeamIndex * segmentAngle + segmentAngle / 2;
-                const pointerAngle = 270; // Top of wheel in math angle convention
-                const targetRotation = pointerAngle - teamCenterAngle;
+                const segmentAngle = 360 / poolBeforePick.length;
+                const selectedSegmentCenterAngle = randomIndex * segmentAngle + segmentAngle / 2;
+
+                const pointerAngle = 270;
+                const targetRotation = pointerAngle - selectedSegmentCenterAngle;
+
+                const currentRotationNormalized = ((wheelRotation % 360) + 360) % 360;
+                const targetRotationNormalized = ((targetRotation % 360) + 360) % 360;
+
+                let rotationDifference = targetRotationNormalized - currentRotationNormalized;
+
+                if (rotationDifference < 0) {
+                    rotationDifference += 360;
+                }
+
                 const spins = 8;
-                const finalRotation = spins * 360 + targetRotation;
+                const finalRotation = wheelRotation + spins * 360 + rotationDifference;
 
-                // Spin for 4 seconds, then transition to landing
                 setTimeout(() => {
                     setIsLanding(true);
                     setWheelRotation(finalRotation);
                 }, 4000);
 
-                // Show result after landing animation (4s spin + 2s landing)
                 setTimeout(() => {
                     SoundManager.playWin();
-                    setModalTeam(selectedTeam);
+                    setModalTeam(selectedPickRecord);
                     setModalPickNumber(selectedPicks.length + 1);
                     setShowModal(true);
                     setIsSpinning(false);
@@ -432,19 +548,20 @@
             const simulateAllPicks = () => {
                 if (isSpinning || currentBallPool.length === 0) return;
 
-                // Generate all remaining picks at once
                 const allPicks = [...selectedPicks];
                 let tempPool = [...currentBallPool];
 
                 while (tempPool.length > 0) {
+                    const poolBeforePick = [...tempPool];
                     const randomIndex = Math.floor(Math.random() * tempPool.length);
                     const selectedId = tempPool[randomIndex];
                     const selectedTeam = teams.find(t => t.id === selectedId);
-                    allPicks.push(selectedTeam);
+                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
+
+                    allPicks.push(selectedPickRecord);
                     tempPool = tempPool.filter(id => id !== selectedId);
                 }
 
-                // Update state and navigate to results
                 setSelectedPicks(allPicks);
                 setCurrentBallPool([]);
                 setIsSpinning(false);
@@ -472,15 +589,21 @@
 
             const movePickUp = (index) => {
                 if (index === 0) return;
+
                 const updated = [...selectedPicks];
+
                 [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+
                 setSelectedPicks(updated);
             };
 
             const movePickDown = (index) => {
                 if (index === selectedPicks.length - 1) return;
+
                 const updated = [...selectedPicks];
+
                 [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+
                 setSelectedPicks(updated);
             };
 
@@ -491,7 +614,6 @@
             const totalRevenue = teams.reduce((sum, t) => sum + getPurchaseCost(t), 0);
             const leaguePot = (entryAmount * 16) + totalRevenue;
 
-            // SETUP PHASE
             if (phase === 'setup') {
                 return (
                     <div className="min-h-screen p-6 md:p-12">
@@ -511,7 +633,7 @@
                                         <input
                                             type="number"
                                             value={entryAmount}
-                                            onChange={(e) => setEntryAmount(parseFloat(e.target.value))}
+                                            onChange={(e) => setEntryAmount(parseFloat(e.target.value) || 0)}
                                             className="w-full px-6 py-4 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-lg"
                                         />
                                         <p className="text-gray-400 text-sm mt-2">League Pot: ${(entryAmount * 16).toFixed(2)}</p>
@@ -530,7 +652,6 @@
                 );
             }
 
-            // PURCHASES PHASE
             if (phase === 'purchases') {
                 return (
                     <div className="min-h-screen p-6 md:p-12">
@@ -570,15 +691,25 @@
                                                     ) : (
                                                         <div className="font-bold text-lg text-white">{t.name}</div>
                                                     )}
+
                                                     <div className="text-xs text-gray-400">#{t.position} {t.isTBWinner ? '(TB Winner)' : ''}</div>
                                                 </div>
 
                                                 <div className="bg-gray-900 rounded-lg p-3 border border-gray-800">
                                                     <div className="text-xs text-gray-400">Base Balls</div>
+
                                                     {editPurchasesMode ? (
                                                         <div className="flex items-center gap-2 mt-2">
                                                             <button onClick={() => updateTeam(t.id, 'baseBalls', Math.max(0, t.baseBalls - 1))} className="pill-button">−</button>
-                                                            <input type="number" min="0" value={t.baseBalls} onChange={(e) => updateTeam(t.id, 'baseBalls', Math.max(0, parseInt(e.target.value) || 0))} className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-center font-bold text-sm" />
+
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={t.baseBalls}
+                                                                onChange={(e) => updateTeam(t.id, 'baseBalls', Math.max(0, parseInt(e.target.value) || 0))}
+                                                                className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-center font-bold text-sm"
+                                                            />
+
                                                             <button onClick={() => updateTeam(t.id, 'baseBalls', t.baseBalls + 1)} className="pill-button">+</button>
                                                         </div>
                                                     ) : (
@@ -588,11 +719,22 @@
 
                                                 <div>
                                                     <label className="text-xs text-gray-400 block mb-2">Purchase (0-{t.maxPurchase})</label>
+
                                                     <div className="flex items-center gap-2">
                                                         <button onClick={() => updateTeam(t.id, 'purchasedBalls', Math.max(0, t.purchasedBalls - 1))} className="pill-button">−</button>
-                                                        <input type="number" min="0" max={t.maxPurchase} value={t.purchasedBalls} onChange={(e) => updateTeam(t.id, 'purchasedBalls', Math.min(t.maxPurchase, Math.max(0, parseInt(e.target.value) || 0)))} className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-center font-bold text-sm" />
+
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            max={t.maxPurchase}
+                                                            value={t.purchasedBalls}
+                                                            onChange={(e) => updateTeam(t.id, 'purchasedBalls', Math.min(t.maxPurchase, Math.max(0, parseInt(e.target.value) || 0)))}
+                                                            className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-center font-bold text-sm"
+                                                        />
+
                                                         <button onClick={() => updateTeam(t.id, 'purchasedBalls', Math.min(t.maxPurchase, t.purchasedBalls + 1))} className="pill-button">+</button>
                                                     </div>
+
                                                     <div className="text-xs text-gray-400 mt-1">${cost.toFixed(2)}</div>
                                                 </div>
 
@@ -608,19 +750,23 @@
 
                             <div className="glass rounded-2xl p-6 mb-8">
                                 <h3 className="text-lg font-bold text-white mb-4">Summary</h3>
+
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
                                         <div className="text-xs text-gray-400">Total Balls</div>
                                         <div className="text-2xl font-bold text-blue-400">{teams.reduce((sum, t) => sum + getTotalBalls(t), 0)}</div>
                                     </div>
+
                                     <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
                                         <div className="text-xs text-gray-400">Ball Revenue</div>
                                         <div className="text-2xl font-bold text-white">${totalRevenue.toFixed(2)}</div>
                                     </div>
+
                                     <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
                                         <div className="text-xs text-gray-400">Entry Pot</div>
                                         <div className="text-2xl font-bold text-white">${(entryAmount * 16).toFixed(2)}</div>
                                     </div>
+
                                     <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
                                         <div className="text-xs text-gray-400">Total Pot</div>
                                         <div className="text-2xl font-bold text-blue-400">${leaguePot.toFixed(2)}</div>
@@ -630,27 +776,51 @@
 
                             <div className="flex gap-4">
                                 <button onClick={() => setPhase('setup')} className="secondary-btn flex-1 py-3 px-4 rounded-xl font-bold">Back</button>
-                                <button onClick={startLottery} disabled={teams.some(t => getTotalBalls(t) > 9)} className="modern-btn flex-1 py-3 px-4 rounded-xl font-bold">Start Lottery</button>
+
+                                <button
+                                    onClick={startLottery}
+                                    disabled={teams.some(t => getTotalBalls(t) > 9)}
+                                    className="modern-btn flex-1 py-3 px-4 rounded-xl font-bold"
+                                >
+                                    Start Lottery
+                                </button>
                             </div>
                         </div>
                     </div>
                 );
             }
 
-            // LOTTERY PHASE
             if (phase === 'lottery') {
                 const remaining = teams.filter(t => currentBallPool.includes(t.id));
                 const totalBalls = currentBallPool.length;
+                const nextPickNumber = selectedPicks.length + 1;
 
                 return (
-                    <div className="min-h-screen p-6 md:p-12">
+                    <div className="min-h-screen p-4 md:p-10">
                         {showModal && modalTeam && (
                             <div className="modal-overlay">
                                 <div className="modal-content">
                                     <div className="modal-inner">
+                                        <div className="text-blue-400 font-black text-lg uppercase tracking-wide">Pick #{modalPickNumber}</div>
                                         <div className="pick-number-large">{modalPickNumber}</div>
                                         <div className="team-name-large">{modalTeam.name}</div>
-                                        <div className="text-lg text-blue-400 font-bold">PICK #{modalPickNumber}</div>
+
+                                        <div className="grid grid-cols-2 gap-3 mt-6">
+                                            <div className="stat-card">
+                                                <div className="text-xs text-gray-400 uppercase tracking-wide">Balls Before Pick</div>
+                                                <div className="text-3xl font-black text-white">{modalTeam.pickBallCount}</div>
+                                            </div>
+
+                                            <div className="stat-card">
+                                                <div className="text-xs text-gray-400 uppercase tracking-wide">Chance For Pick</div>
+                                                <div className="text-3xl font-black text-blue-400">{modalTeam.pickPercentage}%</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="text-sm text-gray-400 mt-4">
+                                            {modalTeam.pickBallCount} out of {modalTeam.pickTotalBalls} balls before this draw.
+                                        </div>
+
                                         <button onClick={confirmPick} className="modal-button">Next Pick</button>
                                     </div>
                                 </div>
@@ -658,39 +828,86 @@
                         )}
 
                         <div className="max-w-7xl mx-auto">
-                            <div className="text-center mb-8">
-                                <h1 className="text-5xl font-black text-white mb-2">In Cell We Trust</h1>
-                                <h2 className="text-2xl font-bold text-blue-400">LOTTERY DRAW</h2>
+                            <div className="text-center mb-6">
+                                <h1 className="text-4xl md:text-5xl font-black text-white mb-2">In Cell We Trust</h1>
+                                <h2 className="text-xl md:text-2xl font-bold text-blue-400">2027 LOTTERY DRAW</h2>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                                {/* Odds Panel */}
-                                <div className="glass rounded-2xl p-6">
-                                    <h2 className="text-xl font-bold text-white mb-4">ODDS</h2>
-                                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                <div className="stat-card">
+                                    <div className="text-xs text-gray-400 uppercase tracking-wide">Next Pick</div>
+                                    <div className="text-3xl font-black text-blue-400">#{nextPickNumber}</div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="text-xs text-gray-400 uppercase tracking-wide">Teams Left</div>
+                                    <div className="text-3xl font-black text-white">{remaining.length}</div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="text-xs text-gray-400 uppercase tracking-wide">Balls Left</div>
+                                    <div className="text-3xl font-black text-white">{totalBalls}</div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="text-xs text-gray-400 uppercase tracking-wide">Picks Made</div>
+                                    <div className="text-3xl font-black text-white">{selectedPicks.length}</div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                <div className="lg:col-span-3 glass rounded-2xl p-5">
+                                    <div className="flex items-end justify-between mb-4">
+                                        <div>
+                                            <h2 className="text-xl font-black text-white">Live Odds</h2>
+                                            <p className="text-xs text-gray-400">Balls and percentage before next spin</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                                         {remaining.map(t => {
-                                            const ballCount = currentBallPool.filter(id => id === t.id).length;
-                                            const percentage = ((ballCount / totalBalls) * 100).toFixed(1);
+                                            const ballCount = getTeamBallCountInPool(t.id);
+                                            const percentage = getTeamOddsInPool(t.id);
+
                                             return (
-                                                <div key={t.id} className="bg-gray-900 rounded-lg p-3 border border-gray-800">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <div className="w-3 h-3 rounded" style={{backgroundColor: neonColors[t.id]}}></div>
-                                                        <div className="font-bold text-xs text-gray-300">{t.name}</div>
+                                                <div key={t.id} className="odds-row">
+                                                    <div className="flex items-center justify-between gap-3 mb-2">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: neonColors[t.id] }}></div>
+                                                            <div className="font-bold text-sm text-white truncate">{t.name}</div>
+                                                        </div>
+
+                                                        <div className="text-right shrink-0">
+                                                            <div className="text-sm font-black text-blue-400">{percentage}%</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-lg font-black text-blue-400 ml-5">{percentage}%</div>
+
+                                                    <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+                                                        <span>{ballCount} balls</span>
+                                                        <span>{ballCount}/{totalBalls}</span>
+                                                    </div>
+
+                                                    <div className="mini-bar">
+                                                        <div className="mini-bar-fill" style={{ width: `${percentage}%` }}></div>
+                                                    </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 </div>
 
-                                {/* Wheel */}
-                                <div className="lg:col-span-2">
-                                    <div className="glass rounded-2xl p-8">
-                                        <h2 className="text-2xl font-black text-center text-blue-400 mb-8">THE LOTTERY CHAMBER</h2>
+                                <div className="lg:col-span-6">
+                                    <div className="glass rounded-2xl p-5 md:p-8">
+                                        <div className="text-center mb-6">
+                                            <h2 className="text-2xl md:text-3xl font-black text-blue-400">THE LOTTERY CHAMBER</h2>
+                                            <p className="text-gray-400 text-sm mt-2">
+                                                Every visible slice is an actual ball in the draw.
+                                            </p>
+                                        </div>
 
                                         <div className="wheel-container">
                                             <div className="pointer"></div>
+
                                             <div className="wheel">
                                                 <WheelOfFortune
                                                     teams={teams}
@@ -700,47 +917,64 @@
                                                     wheelRotation={wheelRotation}
                                                 />
                                             </div>
+
+                                            <div className="center-dot"></div>
                                         </div>
 
-                                        <div className="flex gap-3 mt-8">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
                                             <button
                                                 onClick={drawPick}
                                                 disabled={currentBallPool.length === 0 || isSpinning}
-                                                className={`flex-1 font-bold py-4 px-6 rounded-xl text-lg transition ${currentBallPool.length > 0 && !isSpinning ? 'modern-btn' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                                                className={`font-bold py-4 px-6 rounded-xl text-lg transition ${currentBallPool.length > 0 && !isSpinning ? 'modern-btn' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                                             >
-                                                {isSpinning ? '⏳ SPINNING...' : currentBallPool.length > 0 ? '🎲 SPIN' : 'DONE'}
+                                                {isSpinning ? '⏳ SPINNING...' : currentBallPool.length > 0 ? `🎲 SPIN FOR PICK #${nextPickNumber}` : 'DONE'}
                                             </button>
+
                                             <button
                                                 onClick={simulateAllPicks}
                                                 disabled={currentBallPool.length === 0 || isSpinning}
-                                                className={`flex-1 font-bold py-4 px-6 rounded-xl text-lg transition ${currentBallPool.length > 0 && !isSpinning ? 'secondary-btn' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                                                className={`font-bold py-4 px-6 rounded-xl text-lg transition ${currentBallPool.length > 0 && !isSpinning ? 'secondary-btn' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                                             >
-                                                ⚡ FINISH
+                                                ⚡ FINISH REST
                                             </button>
                                         </div>
 
-                                        <p className="text-center text-gray-400 mt-4 font-bold">{currentBallPool.length} balls remaining</p>
+                                        <div className="text-center text-gray-400 mt-4 text-sm">
+                                            {currentBallPool.length} balls remaining after {selectedPicks.length} picks.
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Draft Order */}
-                                <div className="glass rounded-2xl p-6 h-fit">
-                                    <h2 className="text-xl font-bold text-white mb-4">Draft Order</h2>
-                                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                                <div className="lg:col-span-3 glass rounded-2xl p-5 h-fit">
+                                    <h2 className="text-xl font-black text-white mb-1">Draft Order</h2>
+                                    <p className="text-xs text-gray-400 mb-4">Shows each winner’s odds at the time selected</p>
+
+                                    <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                                         {selectedPicks.length === 0 ? (
                                             <div className="text-gray-400 text-center py-8 text-sm">Waiting for first spin...</div>
                                         ) : (
                                             selectedPicks.map((t, i) => (
-                                                <div key={i} className="bg-gray-900 rounded-lg p-3 border border-gray-800 flex items-center gap-3">
-                                                    <div className="bg-blue-500 rounded-full w-7 h-7 flex items-center justify-center font-bold text-white text-xs">{i + 1}</div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="font-bold text-white text-sm truncate">{t.name}</div>
+                                                <div key={i} className="odds-row">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center font-black text-white text-xs shrink-0">
+                                                            {i + 1}
+                                                        </div>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-bold text-white text-sm truncate">{t.name}</div>
+                                                            <div className="text-xs text-gray-400">
+                                                                {t.pickBallCount} balls • {t.pickPercentage}% chance
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))
                                         )}
                                     </div>
-                                    {selectedPicks.length > 0 && <button onClick={() => setPhase('results')} className="w-full mt-4 modern-btn font-bold py-2 rounded-lg text-sm">View Results</button>}
+
+                                    {selectedPicks.length > 0 && (
+                                        <button onClick={() => setPhase('results')} className="w-full mt-4 modern-btn font-bold py-3 rounded-lg text-sm">View Results</button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -748,7 +982,6 @@
                 );
             }
 
-            // RESULTS PHASE
             if (phase === 'results') {
                 if (selectedPicks.length === 0) {
                     return (
@@ -782,9 +1015,11 @@
                                 <div className="space-y-3">
                                     {selectedPicks.map((t, i) => {
                                         const totalBalls = getTotalBalls(t);
+
                                         return (
                                             <div key={i} className="bg-gray-900 rounded-lg p-4 border border-gray-800 flex items-center gap-3">
                                                 <div className="bg-blue-500 rounded-full w-10 h-10 flex items-center justify-center font-black text-white text-sm">{i + 1}</div>
+
                                                 {editMode ? (
                                                     <>
                                                         <input
@@ -793,6 +1028,7 @@
                                                             onChange={(e) => editPickName(i, e.target.value)}
                                                             className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white font-bold focus:outline-none focus:border-blue-500"
                                                         />
+
                                                         <div className="flex gap-1">
                                                             <button
                                                                 onClick={() => movePickUp(i)}
@@ -801,6 +1037,7 @@
                                                             >
                                                                 ↑
                                                             </button>
+
                                                             <button
                                                                 onClick={() => movePickDown(i)}
                                                                 disabled={i === selectedPicks.length - 1}
@@ -813,7 +1050,9 @@
                                                 ) : (
                                                     <div className="flex-1">
                                                         <div className="text-xl font-bold text-white">{t.name}</div>
-                                                        <div className="text-gray-400 text-sm">Had {totalBalls} balls</div>
+                                                        <div className="text-gray-400 text-sm">
+                                                            Had {totalBalls} total balls entering lottery • {t.pickBallCount} balls before pick #{i + 1} • {t.pickPercentage}% chance
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -823,19 +1062,23 @@
 
                                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 mt-8">
                                     <h3 className="text-lg font-bold text-white mb-4">Summary</h3>
+
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div>
                                             <div className="text-xs text-gray-400">Total Balls</div>
                                             <div className="text-2xl font-bold text-blue-400">{teams.reduce((sum, t) => sum + getTotalBalls(t), 0)}</div>
                                         </div>
+
                                         <div>
                                             <div className="text-xs text-gray-400">Entry Pot</div>
                                             <div className="text-2xl font-bold text-white">${(entryAmount * 16).toFixed(2)}</div>
                                         </div>
+
                                         <div>
                                             <div className="text-xs text-gray-400">Ball Revenue</div>
                                             <div className="text-2xl font-bold text-white">${totalRevenue.toFixed(2)}</div>
                                         </div>
+
                                         <div>
                                             <div className="text-xs text-gray-400">Total Pot</div>
                                             <div className="text-2xl font-bold text-blue-400">${leaguePot.toFixed(2)}</div>
@@ -848,6 +1091,7 @@
                                 {selectedPicks.length < 16 && (
                                     <button onClick={() => setPhase('lottery')} className="flex-1 secondary-btn font-bold py-3 px-4 rounded-xl">← Back to Lottery</button>
                                 )}
+
                                 <button onClick={reset} className="flex-1 modern-btn font-bold py-3 px-4 rounded-xl">↻ New Lottery</button>
                             </div>
                         </div>
@@ -855,12 +1099,12 @@
                 );
             }
 
-            // Fallback if no phase matches
             return (
                 <div className="min-h-screen p-6 md:p-12 flex items-center justify-center bg-gray-900">
                     <div className="text-center text-white">
                         <h1 className="text-4xl font-bold mb-4">Error</h1>
                         <p className="text-xl mb-4">Current phase: {phase}</p>
+
                         <button
                             onClick={() => setPhase('setup')}
                             className="modern-btn font-bold py-3 px-8 rounded-xl"
