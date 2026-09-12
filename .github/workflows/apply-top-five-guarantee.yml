@@ -22,239 +22,113 @@ jobs:
           p = Path('index.html')
           s = p.read_text()
 
-          def replace_once(old, new, label):
+          def r(old, new, label):
               global s
               if old not in s:
                   raise SystemExit(f'Missing expected block: {label}')
               s = s.replace(old, new, 1)
 
-          replace_once(
-          """            const buildPickRecord = (team, poolBeforePick) => {
-                const pickBallCount = getTeamBallCountInPool(team.id, poolBeforePick);
-                const pickTotalBalls = poolBeforePick.length;
-                const pickPercentage = pickTotalBalls > 0 ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1) : '0.0';
+          old = ("const buildPickRecord = (team, poolBeforePick) => {\n"
+                 "                const pickBallCount = getTeamBallCountInPool(team.id, poolBeforePick);\n"
+                 "                const pickTotalBalls = poolBeforePick.length;\n"
+                 "                const pickPercentage = pickTotalBalls > 0 ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1) : '0.0';\n\n"
+                 "                return {\n"
+                 "                    ...team,\n"
+                 "                    pickBallCount,\n"
+                 "                    pickTotalBalls,\n"
+                 "                    pickPercentage,\n"
+                 "                };\n"
+                 "            };")
+          new = ("const buildPickRecord = (team, poolBeforePick, topFiveGuaranteeApplied = false) => {\n"
+                 "                const pickBallCount = getTeamBallCountInPool(team.id, poolBeforePick);\n"
+                 "                const pickTotalBalls = poolBeforePick.length;\n"
+                 "                const pickPercentage = topFiveGuaranteeApplied ? '100.0' : (pickTotalBalls > 0 ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1) : '0.0');\n\n"
+                 "                return {\n"
+                 "                    ...team,\n"
+                 "                    pickBallCount,\n"
+                 "                    pickTotalBalls,\n"
+                 "                    pickPercentage,\n"
+                 "                    topFiveGuaranteeApplied,\n"
+                 "                };\n"
+                 "            };")
+          r(old, new, 'pick record')
 
-                return {
-                    ...team,
-                    pickBallCount,
-                    pickTotalBalls,
-                    pickPercentage,
-                };
-            };""",
-          """            const buildPickRecord = (team, poolBeforePick, topFiveGuaranteeApplied = false) => {
-                const pickBallCount = getTeamBallCountInPool(team.id, poolBeforePick);
-                const pickTotalBalls = poolBeforePick.length;
-                const pickPercentage = topFiveGuaranteeApplied
-                    ? '100.0'
-                    : pickTotalBalls > 0
-                        ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1)
-                        : '0.0';
+          marker = "const buildBallPool = () => {"
+          helpers = ("const getTopFiveProtectedTeam = () => teams.find(team => team.position === 1);\n\n"
+                     "            const isTopFiveGuaranteeActive = (pickNumber, pool) => {\n"
+                     "                const protectedTeam = getTopFiveProtectedTeam();\n"
+                     "                return pickNumber === 5 && protectedTeam && pool.includes(protectedTeam.id);\n"
+                     "            };\n\n"
+                     "            const choosePickIndex = (pool, pickNumber) => {\n"
+                     "                if (isTopFiveGuaranteeActive(pickNumber, pool)) {\n"
+                     "                    const protectedTeam = getTopFiveProtectedTeam();\n"
+                     "                    const protectedIndexes = pool.map((teamId, index) => teamId === protectedTeam.id ? index : -1).filter(index => index !== -1);\n"
+                     "                    return { randomIndex: protectedIndexes[getRandomIndex(protectedIndexes.length)], topFiveGuaranteeApplied: true };\n"
+                     "                }\n"
+                     "                return { randomIndex: getRandomIndex(pool.length), topFiveGuaranteeApplied: false };\n"
+                     "            };\n\n"
+                     "            const buildBallPool = () => {")
+          r(marker, helpers, 'guarantee helpers')
 
-                return {
-                    ...team,
-                    pickBallCount,
-                    pickTotalBalls,
-                    pickPercentage,
-                    topFiveGuaranteeApplied,
-                };
-            };""",
-          'pick record')
+          old = ("const poolBeforePick = [...currentBallPool];\n"
+                 "                const randomIndex = getRandomIndex(poolBeforePick.length);\n"
+                 "                const selectedId = poolBeforePick[randomIndex];\n"
+                 "                const selectedTeam = teams.find(t => t.id === selectedId);\n"
+                 "                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);")
+          new = ("const poolBeforePick = [...currentBallPool];\n"
+                 "                const pickNumber = selectedPicks.length + 1;\n"
+                 "                const { randomIndex, topFiveGuaranteeApplied } = choosePickIndex(poolBeforePick, pickNumber);\n"
+                 "                const selectedId = poolBeforePick[randomIndex];\n"
+                 "                const selectedTeam = teams.find(t => t.id === selectedId);\n"
+                 "                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick, topFiveGuaranteeApplied);")
+          r(old, new, 'manual draw')
 
-          replace_once(
-          """            const formatOneIn = (ballCount, totalBalls) => {
-                if (!ballCount || !totalBalls) return '—';
-                return (totalBalls / ballCount).toFixed(1);
-            };
+          old = ("while (tempPool.length > 0) {\n"
+                 "                    const poolBeforePick = [...tempPool];\n"
+                 "                    const randomIndex = getRandomIndex(tempPool.length);\n"
+                 "                    const selectedId = tempPool[randomIndex];\n"
+                 "                    const selectedTeam = teams.find(t => t.id === selectedId);\n"
+                 "                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);")
+          new = ("while (tempPool.length > 0) {\n"
+                 "                    const poolBeforePick = [...tempPool];\n"
+                 "                    const pickNumber = allPicks.length + 1;\n"
+                 "                    const { randomIndex, topFiveGuaranteeApplied } = choosePickIndex(poolBeforePick, pickNumber);\n"
+                 "                    const selectedId = tempPool[randomIndex];\n"
+                 "                    const selectedTeam = teams.find(t => t.id === selectedId);\n"
+                 "                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick, topFiveGuaranteeApplied);")
+          r(old, new, 'simulate all')
 
-            const buildBallPool = () => {""",
-          """            const formatOneIn = (ballCount, totalBalls) => {
-                if (!ballCount || !totalBalls) return '—';
-                return (totalBalls / ballCount).toFixed(1);
-            };
+          old = ("const nextPickNumber = selectedPicks.length + 1;\n\n"
+                 "                return (")
+          new = ("const nextPickNumber = selectedPicks.length + 1;\n"
+                 "                const topFiveProtectedTeam = getTopFiveProtectedTeam();\n"
+                 "                const topFiveGuaranteeActive = isTopFiveGuaranteeActive(nextPickNumber, currentBallPool);\n\n"
+                 "                return (")
+          r(old, new, 'lottery state')
 
-            const getTopFiveProtectedTeam = () => teams.find(team => team.position === 1);
+          old = "<h2 className=\"text-xl md:text-2xl font-bold text-blue-400\">2027 LOTTERY DRAW</h2>"
+          new = ("<h2 className=\"text-xl md:text-2xl font-bold text-blue-400\">2027 LOTTERY DRAW</h2>\n"
+                 "                                <p className=\"text-blue-300 text-sm mt-2 font-semibold\">#1 finisher is guaranteed a top-5 draft pick.</p>")
+          r(old, new, 'rule disclosure')
 
-            const isTopFiveGuaranteeActive = (pickNumber, pool) => {
-                const protectedTeam = getTopFiveProtectedTeam();
-                return pickNumber === 5 && protectedTeam && pool.includes(protectedTeam.id);
-            };
+          old = ("const ballCount = getTeamBallCountInPool(t.id);\n"
+                 "                                            const percentage = getTeamOddsInPool(t.id);")
+          new = ("const ballCount = getTeamBallCountInPool(t.id);\n"
+                 "                                            const isGuaranteedTeam = topFiveGuaranteeActive && t.id === topFiveProtectedTeam?.id;\n"
+                 "                                            const percentage = topFiveGuaranteeActive ? (isGuaranteedTeam ? '100.0' : '0.0') : getTeamOddsInPool(t.id);")
+          r(old, new, 'live effective odds')
 
-            const choosePickIndex = (pool, pickNumber) => {
-                if (isTopFiveGuaranteeActive(pickNumber, pool)) {
-                    const protectedTeam = getTopFiveProtectedTeam();
-                    const protectedIndexes = pool
-                        .map((teamId, index) => teamId === protectedTeam.id ? index : -1)
-                        .filter(index => index !== -1);
+          old = "<div className=\"text-[11px] text-gray-500 mt-0.5\">1 in {formatOneIn(ballCount, totalBalls)}</div>"
+          new = ("<div className=\"text-[11px] text-gray-500 mt-0.5\">\n"
+                 "                                                                {topFiveGuaranteeActive ? (isGuaranteedTeam ? 'Guaranteed at Pick #5' : 'Not eligible for Pick #5') : `1 in ${formatOneIn(ballCount, totalBalls)}`}\n"
+                 "                                                            </div>")
+          r(old, new, 'live guarantee label')
 
-                    return {
-                        randomIndex: protectedIndexes[getRandomIndex(protectedIndexes.length)],
-                        topFiveGuaranteeApplied: true,
-                    };
-                }
-
-                return {
-                    randomIndex: getRandomIndex(pool.length),
-                    topFiveGuaranteeApplied: false,
-                };
-            };
-
-            const buildBallPool = () => {""",
-          'guarantee helpers')
-
-          replace_once(
-          """                const poolBeforePick = [...currentBallPool];
-                const randomIndex = getRandomIndex(poolBeforePick.length);
-                const selectedId = poolBeforePick[randomIndex];
-                const selectedTeam = teams.find(t => t.id === selectedId);
-                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);""",
-          """                const poolBeforePick = [...currentBallPool];
-                const pickNumber = selectedPicks.length + 1;
-                const { randomIndex, topFiveGuaranteeApplied } = choosePickIndex(poolBeforePick, pickNumber);
-                const selectedId = poolBeforePick[randomIndex];
-                const selectedTeam = teams.find(t => t.id === selectedId);
-                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick, topFiveGuaranteeApplied);""",
-          'manual draw')
-
-          replace_once(
-          """                while (tempPool.length > 0) {
-                    const poolBeforePick = [...tempPool];
-                    const randomIndex = getRandomIndex(tempPool.length);
-                    const selectedId = tempPool[randomIndex];
-                    const selectedTeam = teams.find(t => t.id === selectedId);
-                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
-
-                    allPicks.push(selectedPickRecord);
-                    tempPool = tempPool.filter(id => id !== selectedId);
-                }""",
-          """                while (tempPool.length > 0) {
-                    const poolBeforePick = [...tempPool];
-                    const pickNumber = allPicks.length + 1;
-                    const { randomIndex, topFiveGuaranteeApplied } = choosePickIndex(poolBeforePick, pickNumber);
-                    const selectedId = tempPool[randomIndex];
-                    const selectedTeam = teams.find(t => t.id === selectedId);
-                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick, topFiveGuaranteeApplied);
-
-                    allPicks.push(selectedPickRecord);
-                    tempPool = tempPool.filter(id => id !== selectedId);
-                }""",
-          'simulate all')
-
-          replace_once(
-          """                            <div className=\"text-center mb-12\">
-                                <h1 className=\"text-5xl font-black text-white mb-2\">In Cell We Trust</h1>
-                                <h2 className=\"text-2xl font-bold text-blue-400 mb-2\">
-                                    BALL PURCHASES
-                                </h2>
-                                <p className=\"text-gray-400\">Entry: ${entryAmount.toFixed(2)} × 16 teams</p>
-                            </div>""",
-          """                            <div className=\"text-center mb-12\">
-                                <h1 className=\"text-5xl font-black text-white mb-2\">In Cell We Trust</h1>
-                                <h2 className=\"text-2xl font-bold text-blue-400 mb-2\">
-                                    BALL PURCHASES
-                                </h2>
-                                <p className=\"text-gray-400\">Entry: ${entryAmount.toFixed(2)} × 16 teams</p>
-                                <p className=\"text-blue-300 text-sm mt-3 font-semibold\">League rule: the #1 finisher is guaranteed a top-5 draft pick.</p>
-                            </div>""",
-          'purchase rule disclosure')
-
-          replace_once(
-          """            if (phase === 'lottery') {
-                const remaining = teams.filter(t => currentBallPool.includes(t.id));
-                const totalBalls = currentBallPool.length;
-                const nextPickNumber = selectedPicks.length + 1;
-
-                return (""",
-          """            if (phase === 'lottery') {
-                const remaining = teams.filter(t => currentBallPool.includes(t.id));
-                const totalBalls = currentBallPool.length;
-                const nextPickNumber = selectedPicks.length + 1;
-                const topFiveProtectedTeam = getTopFiveProtectedTeam();
-                const topFiveGuaranteeActive = isTopFiveGuaranteeActive(nextPickNumber, currentBallPool);
-
-                return (""",
-          'lottery derived state')
-
-          replace_once(
-          """                                        <div className=\"text-blue-400 font-black text-lg uppercase tracking-wide\">Pick #{modalPickNumber}</div>
-                                        <div className=\"pick-number-large\">{modalPickNumber}</div>
-                                        <div className=\"team-name-large\">{modalTeam.name}</div>
-
-                                        <div className=\"grid grid-cols-2 gap-3 mt-6\">""",
-          """                                        <div className=\"text-blue-400 font-black text-lg uppercase tracking-wide\">Pick #{modalPickNumber}</div>
-                                        <div className=\"pick-number-large\">{modalPickNumber}</div>
-                                        <div className=\"team-name-large\">{modalTeam.name}</div>
-                                        {modalTeam.topFiveGuaranteeApplied && (
-                                            <div className=\"inline-block bg-blue-500/15 border border-blue-400/40 text-blue-300 px-4 py-2 rounded-full text-sm font-bold\">
-                                                #1 Finisher Top-5 Guarantee Applied
-                                            </div>
-                                        )}
-
-                                        <div className=\"grid grid-cols-2 gap-3 mt-6\">""",
-          'modal guarantee badge')
-
-          replace_once(
-          """                                                <div className=\"text-3xl font-black text-blue-400\">{modalTeam.pickPercentage}%</div>
-                                                <div className=\"text-xs text-gray-500 mt-1\">About 1 in {formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}</div>""",
-          """                                                <div className=\"text-3xl font-black text-blue-400\">{modalTeam.pickPercentage}%</div>
-                                                <div className=\"text-xs text-gray-500 mt-1\">
-                                                    {modalTeam.topFiveGuaranteeApplied
-                                                        ? 'Guaranteed by league rule'
-                                                        : `About 1 in ${formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}`}
-                                                </div>""",
-          'modal chance copy')
-
-          replace_once(
-          """                            <div className=\"text-center mb-6\">
-                                <h1 className=\"text-4xl md:text-5xl font-black text-white mb-2\">In Cell We Trust</h1>
-                                <h2 className=\"text-xl md:text-2xl font-bold text-blue-400\">2027 LOTTERY DRAW</h2>
-                            </div>""",
-          """                            <div className=\"text-center mb-6\">
-                                <h1 className=\"text-4xl md:text-5xl font-black text-white mb-2\">In Cell We Trust</h1>
-                                <h2 className=\"text-xl md:text-2xl font-bold text-blue-400\">2027 LOTTERY DRAW</h2>
-                                <p className=\"text-blue-300 text-sm mt-2 font-semibold\">#1 finisher is guaranteed a top-5 draft pick.</p>
-                            </div>""",
-          'lottery rule disclosure')
-
-          replace_once(
-          """                                        {remaining.map(t => {
-                                            const ballCount = getTeamBallCountInPool(t.id);
-                                            const percentage = getTeamOddsInPool(t.id);
-
-                                            return (""",
-          """                                        {remaining.map(t => {
-                                            const ballCount = getTeamBallCountInPool(t.id);
-                                            const isGuaranteedTeam = topFiveGuaranteeActive && t.id === topFiveProtectedTeam?.id;
-                                            const percentage = topFiveGuaranteeActive
-                                                ? (isGuaranteedTeam ? '100.0' : '0.0')
-                                                : getTeamOddsInPool(t.id);
-
-                                            return (""",
-          'live odds effective percentage')
-
-          replace_once(
-          """                                                            <div className=\"text-sm font-black text-blue-400\">{percentage}%</div>
-                                                            <div className=\"text-[11px] text-gray-500 mt-0.5\">1 in {formatOneIn(ballCount, totalBalls)}</div>""",
-          """                                                            <div className=\"text-sm font-black text-blue-400\">{percentage}%</div>
-                                                            <div className=\"text-[11px] text-gray-500 mt-0.5\">
-                                                                {topFiveGuaranteeActive
-                                                                    ? (isGuaranteedTeam ? 'Guaranteed at Pick #5' : 'Not eligible for Pick #5')
-                                                                    : `1 in ${formatOneIn(ballCount, totalBalls)}`}
-                                                            </div>""",
-          'live odds one-in')
-
-          replace_once(
-          """                                        <div>
-                                            <h2 className=\"text-xl font-black text-white\">Live Odds</h2>
-                                            <p className=\"text-xs text-gray-400\">Balls and percentage before next spin</p>
-                                        </div>""",
-          """                                        <div>
-                                            <h2 className=\"text-xl font-black text-white\">Live Odds</h2>
-                                            <p className=\"text-xs text-gray-400\">Balls and effective percentage before next spin</p>
-                                            {topFiveGuaranteeActive && (
-                                                <p className=\"text-xs text-blue-300 font-bold mt-1\">Top-5 guarantee is active for {topFiveProtectedTeam?.name}.</p>
-                                            )}
-                                        </div>""",
-          'live odds guarantee notice')
+          old = "<div className=\"text-xs text-gray-500 mt-1\">About 1 in {formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}</div>"
+          new = ("<div className=\"text-xs text-gray-500 mt-1\">\n"
+                 "                                                    {modalTeam.topFiveGuaranteeApplied ? 'Guaranteed by league rule' : `About 1 in ${formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}`}\n"
+                 "                                                </div>")
+          r(old, new, 'modal guarantee label')
 
           p.write_text(s)
           PY
