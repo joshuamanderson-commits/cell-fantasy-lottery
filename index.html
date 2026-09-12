@@ -457,16 +457,17 @@
                 return ((ballCount / pool.length) * 100).toFixed(1);
             };
 
-            const buildPickRecord = (team, poolBeforePick) => {
+            const buildPickRecord = (team, poolBeforePick, topFiveGuaranteeApplied = false) => {
                 const pickBallCount = getTeamBallCountInPool(team.id, poolBeforePick);
                 const pickTotalBalls = poolBeforePick.length;
-                const pickPercentage = pickTotalBalls > 0 ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1) : '0.0';
+                const pickPercentage = topFiveGuaranteeApplied ? '100.0' : (pickTotalBalls > 0 ? ((pickBallCount / pickTotalBalls) * 100).toFixed(1) : '0.0');
 
                 return {
                     ...team,
                     pickBallCount,
                     pickTotalBalls,
                     pickPercentage,
+                    topFiveGuaranteeApplied,
                 };
             };
 
@@ -514,6 +515,22 @@
             const formatOneIn = (ballCount, totalBalls) => {
                 if (!ballCount || !totalBalls) return '—';
                 return (totalBalls / ballCount).toFixed(1);
+            };
+
+            const getTopFiveProtectedTeam = () => teams.find(team => team.position === 1);
+
+            const isTopFiveGuaranteeActive = (pickNumber, pool) => {
+                const protectedTeam = getTopFiveProtectedTeam();
+                return pickNumber === 5 && protectedTeam && pool.includes(protectedTeam.id);
+            };
+
+            const choosePickIndex = (pool, pickNumber) => {
+                if (isTopFiveGuaranteeActive(pickNumber, pool)) {
+                    const protectedTeam = getTopFiveProtectedTeam();
+                    const protectedIndexes = pool.map((teamId, index) => teamId === protectedTeam.id ? index : -1).filter(index => index !== -1);
+                    return { randomIndex: protectedIndexes[getRandomIndex(protectedIndexes.length)], topFiveGuaranteeApplied: true };
+                }
+                return { randomIndex: getRandomIndex(pool.length), topFiveGuaranteeApplied: false };
             };
 
             const buildBallPool = () => {
@@ -588,10 +605,11 @@
                 setIsLanding(false);
 
                 const poolBeforePick = [...currentBallPool];
-                const randomIndex = getRandomIndex(poolBeforePick.length);
+                const pickNumber = selectedPicks.length + 1;
+                const { randomIndex, topFiveGuaranteeApplied } = choosePickIndex(poolBeforePick, pickNumber);
                 const selectedId = poolBeforePick[randomIndex];
                 const selectedTeam = teams.find(t => t.id === selectedId);
-                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
+                const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick, topFiveGuaranteeApplied);
 
                 const segmentAngle = 360 / poolBeforePick.length;
                 const selectedSegmentCenterAngle = randomIndex * segmentAngle + segmentAngle / 2;
@@ -640,10 +658,11 @@
 
                 while (tempPool.length > 0) {
                     const poolBeforePick = [...tempPool];
-                    const randomIndex = getRandomIndex(tempPool.length);
+                    const pickNumber = allPicks.length + 1;
+                    const { randomIndex, topFiveGuaranteeApplied } = choosePickIndex(poolBeforePick, pickNumber);
                     const selectedId = tempPool[randomIndex];
                     const selectedTeam = teams.find(t => t.id === selectedId);
-                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
+                    const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick, topFiveGuaranteeApplied);
 
                     allPicks.push(selectedPickRecord);
                     tempPool = tempPool.filter(id => id !== selectedId);
@@ -944,6 +963,8 @@
                 const remaining = teams.filter(t => currentBallPool.includes(t.id));
                 const totalBalls = currentBallPool.length;
                 const nextPickNumber = selectedPicks.length + 1;
+                const topFiveProtectedTeam = getTopFiveProtectedTeam();
+                const topFiveGuaranteeActive = isTopFiveGuaranteeActive(nextPickNumber, currentBallPool);
 
                 return (
                     <div className="min-h-screen p-4 md:p-10">
@@ -964,7 +985,9 @@
                                             <div className="stat-card">
                                                 <div className="text-xs text-gray-400 uppercase tracking-wide">Chance For Pick</div>
                                                 <div className="text-3xl font-black text-blue-400">{modalTeam.pickPercentage}%</div>
-                                                <div className="text-xs text-gray-500 mt-1">About 1 in {formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}</div>
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {modalTeam.topFiveGuaranteeApplied ? 'Guaranteed by league rule' : `About 1 in ${formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}`}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -982,6 +1005,7 @@
                             <div className="text-center mb-6">
                                 <h1 className="text-4xl md:text-5xl font-black text-white mb-2">In Cell We Trust</h1>
                                 <h2 className="text-xl md:text-2xl font-bold text-blue-400">2027 LOTTERY DRAW</h2>
+                                <p className="text-blue-300 text-sm mt-2 font-semibold">#1 finisher is guaranteed a top-5 draft pick.</p>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -1018,7 +1042,8 @@
                                     <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                                         {remaining.map(t => {
                                             const ballCount = getTeamBallCountInPool(t.id);
-                                            const percentage = getTeamOddsInPool(t.id);
+                                            const isGuaranteedTeam = topFiveGuaranteeActive && t.id === topFiveProtectedTeam?.id;
+                                            const percentage = topFiveGuaranteeActive ? (isGuaranteedTeam ? '100.0' : '0.0') : getTeamOddsInPool(t.id);
 
                                             return (
                                                 <div key={t.id} className="odds-row">
@@ -1030,7 +1055,9 @@
 
                                                         <div className="text-right shrink-0">
                                                             <div className="text-sm font-black text-blue-400">{percentage}%</div>
-                                                            <div className="text-[11px] text-gray-500 mt-0.5">1 in {formatOneIn(ballCount, totalBalls)}</div>
+                                                            <div className="text-[11px] text-gray-500 mt-0.5">
+                                                                {topFiveGuaranteeActive ? (isGuaranteedTeam ? 'Guaranteed at Pick #5' : 'Not eligible for Pick #5') : `1 in ${formatOneIn(ballCount, totalBalls)}`}
+                                                            </div>
                                                         </div>
                                                     </div>
 
