@@ -480,6 +480,42 @@
                 return cost;
             };
 
+            const getRandomIndex = (maxExclusive) => {
+                if (maxExclusive <= 0) return 0;
+
+                if (window.crypto?.getRandomValues) {
+                    const maxUint32 = 0x100000000;
+                    const limit = maxUint32 - (maxUint32 % maxExclusive);
+                    const values = new Uint32Array(1);
+                    let value;
+
+                    do {
+                        window.crypto.getRandomValues(values);
+                        value = values[0];
+                    } while (value >= limit);
+
+                    return value % maxExclusive;
+                }
+
+                return Math.floor(Math.random() * maxExclusive);
+            };
+
+            const shufflePool = (pool) => {
+                const shuffled = [...pool];
+
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = getRandomIndex(i + 1);
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+
+                return shuffled;
+            };
+
+            const formatOneIn = (ballCount, totalBalls) => {
+                if (!ballCount || !totalBalls) return '—';
+                return (totalBalls / ballCount).toFixed(1);
+            };
+
             const buildBallPool = () => {
                 const pool = [];
 
@@ -489,7 +525,7 @@
                     }
                 });
 
-                return pool;
+                return shufflePool(pool);
             };
 
             const runOddsTest = () => {
@@ -507,7 +543,7 @@
                 }, {});
 
                 for (let i = 0; i < simulations; i++) {
-                    const randomIndex = Math.floor(Math.random() * pool.length);
+                    const randomIndex = getRandomIndex(pool.length);
                     winsByTeam[pool[randomIndex]] += 1;
                 }
 
@@ -552,7 +588,7 @@
                 setIsLanding(false);
 
                 const poolBeforePick = [...currentBallPool];
-                const randomIndex = Math.floor(Math.random() * poolBeforePick.length);
+                const randomIndex = getRandomIndex(poolBeforePick.length);
                 const selectedId = poolBeforePick[randomIndex];
                 const selectedTeam = teams.find(t => t.id === selectedId);
                 const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
@@ -604,7 +640,7 @@
 
                 while (tempPool.length > 0) {
                     const poolBeforePick = [...tempPool];
-                    const randomIndex = Math.floor(Math.random() * tempPool.length);
+                    const randomIndex = getRandomIndex(tempPool.length);
                     const selectedId = tempPool[randomIndex];
                     const selectedTeam = teams.find(t => t.id === selectedId);
                     const selectedPickRecord = buildPickRecord(selectedTeam, poolBeforePick);
@@ -857,6 +893,7 @@
                                                         <th className="text-left py-3 pr-3">Team</th>
                                                         <th className="text-right py-3 px-3">Balls</th>
                                                         <th className="text-right py-3 px-3">Expected</th>
+                                                        <th className="text-right py-3 px-3">1 in</th>
                                                         <th className="text-right py-3 px-3">Simulated</th>
                                                         <th className="text-right py-3 pl-3">Difference</th>
                                                     </tr>
@@ -872,6 +909,7 @@
                                                             </td>
                                                             <td className="text-right py-3 px-3 text-gray-300">{result.balls}</td>
                                                             <td className="text-right py-3 px-3 text-blue-400 font-bold">{result.expectedPercentage.toFixed(2)}%</td>
+                                                            <td className="text-right py-3 px-3 text-gray-300">1 in {formatOneIn(result.balls, oddsTestResults.totalBalls)}</td>
                                                             <td className="text-right py-3 px-3 text-white font-bold">{result.simulatedPercentage.toFixed(2)}%</td>
                                                             <td className={`text-right py-3 pl-3 font-bold ${Math.abs(result.difference) <= 0.75 ? 'text-green-400' : 'text-yellow-400'}`}>
                                                                 {result.difference >= 0 ? '+' : ''}{result.difference.toFixed(2)}%
@@ -881,7 +919,7 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-4">Small differences are normal random variation. Re-running the test will produce slightly different simulated percentages each time.</p>
+                                        <p className="text-xs text-gray-500 mt-4">Small differences are normal random variation. The live draw and tester now use the browser's cryptographic random-number generator when available, and the visible wheel is shuffled so identical team balls are spread around the chamber.</p>
                                     </div>
                                 )}
                             </div>
@@ -926,6 +964,7 @@
                                             <div className="stat-card">
                                                 <div className="text-xs text-gray-400 uppercase tracking-wide">Chance For Pick</div>
                                                 <div className="text-3xl font-black text-blue-400">{modalTeam.pickPercentage}%</div>
+                                                <div className="text-xs text-gray-500 mt-1">About 1 in {formatOneIn(modalTeam.pickBallCount, modalTeam.pickTotalBalls)}</div>
                                             </div>
                                         </div>
 
@@ -991,6 +1030,7 @@
 
                                                         <div className="text-right shrink-0">
                                                             <div className="text-sm font-black text-blue-400">{percentage}%</div>
+                                                            <div className="text-[11px] text-gray-500 mt-0.5">1 in {formatOneIn(ballCount, totalBalls)}</div>
                                                         </div>
                                                     </div>
 
