@@ -42,21 +42,9 @@
 
         .pie-svg {
             transform-origin: center;
+            transform-box: view-box;
             will-change: transform;
-        }
-
-        @keyframes spinWheel {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .pie-svg.spinning {
-            animation: spinWheel 1s linear infinite;
+            backface-visibility: hidden;
         }
 
         .pointer {
@@ -342,11 +330,11 @@
 
             return (
                 <svg
-                    className={`pie-svg ${isSpinning && !isLanding ? 'spinning' : ''}`}
+                    className="pie-svg"
                     viewBox="0 0 200 200"
                     style={{
                         transform: `rotate(${wheelRotation}deg)`,
-                        transition: isLanding ? 'transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
+                        transition: isLanding ? 'transform 6s cubic-bezier(0.12, 0.65, 0.2, 1)' : 'none'
                     }}
                 >
                     {ballSegments.map((segment, idx) => {
@@ -629,10 +617,12 @@
                 const spins = 8;
                 const finalRotation = wheelRotation + spins * 360 + rotationDifference;
 
+                // Start a single continuous rotation after the browser paints the starting frame.
+                // Avoid swapping CSS keyframes for an inline transform mid-spin (which causes flashing).
                 setTimeout(() => {
                     setIsLanding(true);
                     setWheelRotation(finalRotation);
-                }, 4000);
+                }, 50);
 
                 setTimeout(() => {
                     SoundManager.playWin();
